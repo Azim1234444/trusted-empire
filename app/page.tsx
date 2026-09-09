@@ -20,8 +20,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-const group = 'https://t.me/TrustedEmpire86',
-  qr = 'https://t.me/TrustedEmpire86/430';
+const group = 'https://t.me/TrustedEmpire86';
+const telegramAdmin = 'https://t.me/AJIMJEHEHE';
+const whatsapp = 'https://wa.me/60163495594';
 const plans = [
   {
     id: 'netflix',
@@ -218,7 +219,7 @@ export default function Home() {
             <QrCode /> Bayar dengan QR atau CIMB
           </span>
           <span>
-            <MessageCircle /> Urusan melalui Telegram
+            <MessageCircle /> WhatsApp & Telegram
           </span>
         </div>
         <section id="pelan" className="catalog wrap">
@@ -280,7 +281,11 @@ export default function Home() {
                 Myiptv4k
               </p>
             </div>
-            <a href={group} target="_blank" rel="noreferrer">
+            <a
+              href={`${whatsapp}?text=${encodeURIComponent('Salam Trusted Empire, saya ingin tahu harga dan ketersediaan IPTV: MSTV, Sybertv, WDHD dan Myiptv4k.')}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Tanya harga & ketersediaan <ArrowUpRight size={18} />
             </a>
           </div>
@@ -342,6 +347,48 @@ export default function Home() {
             Sertai Telegram <ArrowUpRight size={18} />
           </a>
         </section>
+        <section className="contact-admin wrap" aria-labelledby="admin-title">
+          <div>
+            <h2 id="admin-title">Perlukan bantuan admin?</h2>
+            <p>
+              Hantar resit atau tanya tentang langganan melalui WhatsApp atau
+              Telegram.
+            </p>
+            <div className="contact-actions">
+              <a
+                className="btn primary"
+                href={whatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={18} /> WhatsApp 016-349 5594
+              </a>
+              <a
+                className="btn secondary"
+                href={telegramAdmin}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Send size={18} /> @AJIMJEHEHE
+              </a>
+            </div>
+          </div>
+          <a
+            className="telegram-qr"
+            href={telegramAdmin}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Hubungi admin Telegram AJIMJEHEHE"
+          >
+            <img
+              src="/telegram-admin-qr.png"
+              width={1184}
+              height={1410}
+              loading="lazy"
+              alt="QR Telegram admin @AJIMJEHEHE"
+            />
+          </a>
+        </section>
       </main>
       <footer className="wrap">
         <a className="brand" href="#">
@@ -401,6 +448,40 @@ export default function Home() {
             </p>
           )}
           <div className="payment">
+            <div className="payment-qr-heading">
+              <QrCode size={19} />
+              <strong>Imbas QR untuk bayar</strong>
+            </div>
+            <p className="qr-recipient">ROSMISZAN BIN HUSAIN</p>
+            <a
+              className="payment-qr-frame"
+              href="/payment-qr.png"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Buka gambar penuh QR pembayaran Rosmiszan bin Husain"
+            >
+              <img
+                src="/payment-qr.png"
+                width={573}
+                height={1280}
+                alt="QR pembayaran DuitNow Rosmiszan bin Husain daripada TnG"
+              />
+            </a>
+            <p className="qr-instructions">
+              Bayar <strong>RM{total}</strong>. Semak nama penerima dan jumlah
+              dalam aplikasi sebelum sahkan bayaran.
+            </p>
+            <a
+              className="btn secondary"
+              href="/payment-qr.png"
+              download="Trusted-Empire-QR.png"
+            >
+              Simpan gambar QR <ArrowUpRight size={16} />
+            </a>
+            <p className="qr-instructions">
+              Guna telefon yang sama? Simpan QR dan pilih gambar itu dalam
+              pengimbas aplikasi bank atau TnG.
+            </p>
             <div className="bank-label">
               PINDAHAN BANK <span>CIMB</span>
             </div>
@@ -412,15 +493,6 @@ export default function Home() {
             >
               8606 2419 82 <Copy size={18} />
             </button>
-            <a
-              className="btn secondary"
-              href={qr}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <QrCode size={19} /> Buka QR TnG di Telegram{' '}
-              <ArrowUpRight size={16} />
-            </a>
           </div>
           <p className="payment-note">
             Reference payment: gunakan <strong>NAMA PENDEK</strong> anda sahaja.
@@ -447,21 +519,29 @@ export default function Home() {
           {message && (
             <div className="prepared">
               <p>
-                Salin mesej ini dan hantarkan bersama resit kepada admin melalui
-                komuniti Telegram.
+                Buka WhatsApp dengan mesej siap diisi, atau salin mesej untuk
+                Telegram. Lampirkan resit dan tekan hantar dalam aplikasi.
               </p>
               <textarea aria-label="Mesej pesanan" readOnly value={message} />
               <div>
+                <a
+                  className="btn primary"
+                  href={`${whatsapp}?text=${encodeURIComponent(message)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle size={16} /> Teruskan ke WhatsApp
+                </a>
                 <button className="btn secondary" onClick={() => copy(message)}>
                   <Copy size={16} /> Salin mesej
                 </button>
                 <a
-                  className="btn primary"
-                  href={group}
+                  className="btn secondary"
+                  href={telegramAdmin}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Buka Telegram <Send size={16} />
+                  Telegram admin <Send size={16} />
                 </a>
               </div>
               <small>

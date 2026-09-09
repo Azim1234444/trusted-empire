@@ -1,10 +1,34 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@font-face{font-family:'Outfit';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/outfit-latin-400-normal.woff2') format('woff2')}
-@font-face{font-family:'Outfit';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/outfit-latin-500-normal.woff2') format('woff2')}
-@font-face{font-family:'Outfit';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/outfit-latin-600-normal.woff2') format('woff2')}
-@font-face{font-family:'Outfit';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/outfit-latin-700-normal.woff2') format('woff2')}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/outfit-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/outfit-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/outfit-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/outfit-latin-700-normal.woff2') format('woff2');
+}
 @custom-variant dark (&:is(.dark *));
 @theme inline {
   --color-background: var(--background);
@@ -962,3 +986,104 @@ footer small {
     linear-gradient(0deg, #0c0e1050, #0c0e1010), url(/cinema.png);
 }
 
+.payment-qr-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #d7fa76;
+  font-size: 16px;
+}
+.payment .qr-recipient {
+  margin: 10px 0 14px;
+  font-size: 14px;
+}
+.payment-qr-frame {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 290px);
+  aspect-ratio: 350/410;
+  margin: 0 auto 16px;
+  background: #fff;
+  border-radius: 12px;
+}
+.payment-qr-frame img {
+  position: absolute;
+  width: 163.7143%;
+  max-width: none;
+  height: auto;
+  left: -30%;
+  top: -96.3415%;
+}
+.payment .qr-instructions {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b8c3b9;
+  margin: 12px 0 16px;
+}
+.payment .bank-label {
+  padding-top: 18px;
+  border-top: 1px solid #344036;
+}
+.prepared > div {
+  flex-wrap: wrap;
+}
+.prepared > div > .primary {
+  width: 100%;
+  padding: 13px;
+}
+.contact-admin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  border-top: 1px solid #2a2f31;
+  margin-top: 40px;
+  padding-block: 35px;
+}
+.contact-admin h2 {
+  font-size: 28px;
+}
+.contact-admin p {
+  color: #a1ada1;
+  max-width: 500px;
+  line-height: 1.6;
+}
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.contact-actions .btn {
+  font-size: 14px;
+  gap: 10px;
+}
+.telegram-qr {
+  display: block;
+  width: 160px;
+  flex-shrink: 0;
+}
+.telegram-qr img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+@media (max-width: 767px) {
+  .contact-admin {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 23px;
+  }
+  .contact-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .telegram-qr {
+    width: 140px;
+  }
+  .contact-admin h2 {
+    font-size: 25px;
+  }
+}

@@ -4,14 +4,15 @@ Malay streaming subscription storefront built with React, Vinext, Tailwind and M
 
 ## Current checkout
 
-Customers choose a plan, open the original Telegram QR post or copy the CIMB account, enter their payment reference name, and prepare a message to copy to the administrator. No payment is verified and no subscription is delivered automatically. The supplied Telegram URL is a community, not a verified direct admin or bot destination. IPTV pricing must be confirmed with the administrator.
+Customers choose a plan, scan or download the supplied payment QR (or copy the CIMB account), enter their payment reference name, and open WhatsApp 60163495594 with a prefilled order message. Telegram admin is @AJIMJEHEHE; customers can copy the message and send it directly there. The original TrustedEmpire86 community link remains available for updates. Customers must attach their receipt and press Send in the messaging app. No payment is verified and no subscription is delivered automatically. IPTV pricing must be confirmed with the administrator.
 
 ## Requirements for automatic delivery
 
-Connect a payment provider with signed server-side payment webhooks; persist orders and verified amounts; add idempotent delivery and retry handling; connect an authorised Telegram bot or WhatsApp Business API; securely provision subscription inventory. Require a verified payment before releasing subscription details. Keep credentials in server-side secrets, never client code. No provider credentials or direct messaging destination have been supplied yet.
+Connect a payment provider with signed server-side payment webhooks; persist orders and verified amounts; add idempotent delivery and retry handling; connect an authorised Telegram bot or WhatsApp Business API; securely provision subscription inventory. Require a verified payment before releasing subscription details. Keep credentials in server-side secrets, never client code. Direct messaging destinations have been supplied; payment provider and messaging API credentials are still required for automatic delivery.
 
-The original QR post could not be retrieved for embedding, so checkout links to the exact supplied post. Do not replace it with a generated payment QR. The cinema image is original generated decorative art, not a claim about available programme titles.
+The user supplied original payment and Telegram QR screenshots. These are stored without alteration. CSS frames the payment QR for display; download and full-image links preserve the complete original screenshot. Do not replace it with a generated payment QR. The cinema image is original generated decorative art, not a claim about available programme titles.
 
 ## Validation
 
 TypeScript and production build checked. Local route returned HTTP 200. Browser UI testing was not requested. Optional WebMCP list_subscription_plans is feature-detected; no supported WebMCP validation context was available, so its runtime registration is unverified.
+
