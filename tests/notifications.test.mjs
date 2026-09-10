@@ -2,8 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
-import { notifyOrder } from '../lib/notifications.ts';
+import { notifyOrder, handleNotification } from '../lib/notifications.ts';
 const origin='https://example.test';
+test('only configured storefront receives CORS access, including errors',async()=>{
+ const s=setup();s.env.STOREFRONT_ORIGIN='https://trusted-empire.vercel.app';
+ const preflight=await handleNotification(new Request(origin,{method:'OPTIONS',headers:{origin:s.env.STOREFRONT_ORIGIN}}),s.env,s.transport);
+ assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),s.env.STOREFRONT_ORIGIN);
+ const rejected=await handleNotification(request({},'https://fake.vercel.app'),s.env,s.transport);
+ assert.equal(rejected.status,403);assert.equal(rejected.headers.get('access-control-allow-origin'),null);
+ const invalid=await handleNotification(request({name:''},s.env.STOREFRONT_ORIGIN),s.env,s.transport);
+ assert.equal(invalid.status,400);assert.equal(invalid.headers.get('access-control-allow-origin'),s.env.STOREFRONT_ORIGIN);
+ assert.equal(s.sent.length,0);s.sql.close();
+});
 function setup(){
  const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../drizzle/0000_mighty_beyonder.sql',import.meta.url),'utf8'));
  const DB = {

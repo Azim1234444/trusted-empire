@@ -176,7 +176,7 @@ export default function Home() {
         requestId: id, planId: selected.id, months,
         name: name.trim(), contact: contact.trim(), paymentClaimed: true,
       }));
-      const response = await fetch('/api/notify-order', {
+      const response = await fetch(process.env.NEXT_PUBLIC_ORDER_API || '/api/notify-order', {
         method: 'POST',
         body: form,
         signal: AbortSignal.timeout(60000),

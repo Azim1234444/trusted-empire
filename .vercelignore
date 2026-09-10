@@ -1,0 +1,8 @@
+.env*
+!.env.example
+.openai
+.wrangler
+dist
+dist-vercel
+work
+outputs

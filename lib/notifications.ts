@@ -3,6 +3,22 @@ export interface NotificationEnv {
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_ADMIN_CHAT_ID: string;
   SITE_ORIGIN: string;
+  STOREFRONT_ORIGIN?: string;
+}
+export function allowedOrigin(request: Request, env: NotificationEnv) {
+  const origin = request.headers.get('origin');
+  return !!origin && (origin === env.SITE_ORIGIN || (!!env.STOREFRONT_ORIGIN && origin === env.STOREFRONT_ORIGIN));
+}
+export async function handleNotification(request: Request, env: NotificationEnv, transport: typeof fetch = fetch) {
+  if (!allowedOrigin(request, env)) return Response.json({ error: 'Permintaan tidak dibenarkan.' }, { status: 403 });
+  if (request.method !== 'POST' && request.method !== 'OPTIONS') return new Response(null, { status: 405 });
+  const response = request.method === 'OPTIONS' ? new Response(null, { status: 204 }) : await notifyOrder(request, env, transport);
+  response.headers.set('Access-Control-Allow-Origin', request.headers.get('origin')!);
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  response.headers.set('Vary', 'Origin');
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
 }
 const catalog: Record<string, { name: string; price: number }> = {
   netflix: { name: 'Netflix Premium UHD', price: 1700 },
@@ -26,7 +42,7 @@ export async function notifyOrder(
   env: NotificationEnv,
   transport: typeof fetch = fetch,
 ): Promise<Response> {
-  if (request.headers.get('origin') !== env.SITE_ORIGIN)
+  if (!allowedOrigin(request, env))
     return json({ error: 'Permintaan tidak dibenarkan.' }, 403);
   if (
     !env.TELEGRAM_BOT_TOKEN ||
