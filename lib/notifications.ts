@@ -40,16 +40,53 @@ export async function notifyOrder(
       },
       503,
     );
-  if (!request.headers.get('content-type')?.startsWith('application/json'))
+  const contentType = request.headers.get('content-type') ?? '';
+  const multipart = contentType.startsWith('multipart/form-data');
+  if (!multipart && !contentType.startsWith('application/json'))
     return json({ error: 'Format tidak sah.' }, 415);
-  if (Number(request.headers.get('content-length')) > 2048)
+  const limit = multipart ? 5 * 1024 * 1024 + 8192 : 2048;
+  if (Number(request.headers.get('content-length')) > limit)
     return json({ error: 'Maklumat terlalu panjang.' }, 413);
   let body;
+  let receipt: File | null = null;
+  let receiptHash = '';
+  let receiptExtension = '';
   try {
-    const raw = await request.text();
-    if (raw.length > 2048)
-      return json({ error: 'Maklumat terlalu panjang.' }, 413);
-    body = JSON.parse(raw);
+    const reader = request.body?.getReader();
+    if (!reader) return json({ error: 'Maklumat tidak sah.' }, 400);
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > limit) {
+        await reader.cancel();
+        return json({ error: 'Resit maksimum 5 MB.' }, 413);
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    if (multipart) {
+      const form = await new Response(bytes, { headers: { 'Content-Type': contentType } }).formData();
+      const payload = form.get('payload');
+      if (typeof payload !== 'string' || payload.length > 2048)
+        return json({ error: 'Maklumat tidak sah.' }, 400);
+      body = JSON.parse(payload);
+      const file = form.get('receipt');
+      if (!(file instanceof File) || form.getAll('receipt').length !== 1 || !file.size || file.size > 5 * 1024 * 1024)
+        return json({ error: 'Pilih satu resit JPG, PNG atau PDF, maksimum 5 MB.' }, 400);
+      const data = new Uint8Array(await file.arrayBuffer());
+      const png = [137,80,78,71,13,10,26,10].every((n,i) => data[i] === n);
+      const jpg = data[0] === 255 && data[1] === 216 && data[2] === 255;
+      const pdf = new TextDecoder().decode(data.slice(0,5)) === '%PDF-';
+      receiptExtension = png && file.type === 'image/png' ? 'png' : jpg && file.type === 'image/jpeg' ? 'jpg' : pdf && file.type === 'application/pdf' ? 'pdf' : '';
+      if (!receiptExtension) return json({ error: 'Format resit tidak sah. Gunakan JPG, PNG atau PDF.' }, 400);
+      receipt = file;
+      receiptHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', data))).map(x => x.toString(16).padStart(2,'0')).join('');
+    } else body = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return json({ error: 'Maklumat tidak sah.' }, 400);
   }
@@ -82,7 +119,7 @@ export async function notifyOrder(
     );
   const amountSen = months === 2 ? 3300 : catalog[planId].price;
   const payloadHash = await hash(
-    JSON.stringify([planId, months, name.trim(), contact.trim()]),
+    JSON.stringify(receipt ? [planId, months, name.trim(), contact.trim(), receiptHash] : [planId, months, name.trim(), contact.trim()]),
   );
   const id = requestId;
   const existingResponse = (row: { payload_hash: string; state: string }) =>
@@ -149,17 +186,23 @@ export async function notifyOrder(
     const text = `PESANAN TRUSTED EMPIRE\n\nNo. pesanan: ${id}\nNama: ${name.trim()}\nHubungi: ${contact.trim()}\nPelan: ${catalog[planId].name}\nTempoh: ${months} bulan${months === 2 ? ' (monthly renew)' : ''}\nJumlah: RM${(amountSen / 100).toFixed(2)}\nRujukan bayaran: ${name.trim()}\n\nSTATUS: MENUNGGU SEMAKAN BAYARAN\nPelanggan memaklumkan sudah bayar. Identiti/kontak diisi pelanggan dan belum disahkan. Semak transaksi sebenar dan resit sebelum aktifkan langganan. Resit dihantar berasingan melalui WhatsApp/Telegram.`;
     let result: { ok?: boolean; result?: { message_id: number } };
     try {
+      const attachment = new FormData();
+      if (receipt) {
+        attachment.set('chat_id', env.TELEGRAM_ADMIN_CHAT_ID);
+        attachment.set('document', receipt, `resit-${id}.${receiptExtension}`);
+        attachment.set('caption', text.replace('Resit dihantar berasingan melalui WhatsApp/Telegram.', 'Resit dilampirkan oleh pelanggan; kesahihan bayaran belum disahkan.'));
+      }
       const response = await transport(
-        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${receipt ? 'sendDocument' : 'sendMessage'}`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          headers: receipt ? undefined : { 'Content-Type': 'application/json' },
+          body: receipt ? attachment : JSON.stringify({
             chat_id: env.TELEGRAM_ADMIN_CHAT_ID,
             text,
             link_preview_options: { is_disabled: true },
           }),
-          signal: AbortSignal.timeout(12000),
+          signal: AbortSignal.timeout(30000),
         },
       );
       result = await response.json();

@@ -28,3 +28,9 @@ TypeScript and production build checked. Local route returned HTTP 200. Browser 
 
 
 
+
+## Receipt uploads
+
+Checkout sends JPG, PNG or PDF receipts (maximum 5 MiB) as multipart form data. The server bounds the request stream, validates the file signature and MIME type, and includes a SHA-256 receipt digest in duplicate detection. Telegram sendDocument delivers the original bytes and order caption in one private message to the configured admin. Receipt bytes are relayed directly to Telegram, not published as a website URL or retained in a website archive. D1 retains the order and Telegram message ID. Network-ambiguous delivery is never automatically retried. A WhatsApp fallback remains available. Uploading a receipt does not verify payment.
+
+The current checkout upload replaces the separate WhatsApp receipt step described above. JSON submissions remain supported for older open checkout sessions.

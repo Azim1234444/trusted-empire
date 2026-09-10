@@ -69,6 +69,7 @@ export default function Home() {
   const requestId = useRef('');
   const sending = useRef(false);
   const [contact, setContact] = useState('');
+  const [receipt, setReceipt] = useState<File | null>(null);
   const [notificationState, setNotificationState] = useState<
     'idle' | 'sending' | 'sent' | 'error'
   >('idle');
@@ -137,6 +138,7 @@ export default function Home() {
     if (sending.current) return;
     requestId.current = crypto.randomUUID();
     setContact('');
+    setReceipt(null);
     setNotificationState('idle');
     setNotificationFeedback('');
     setSelected(plan);
@@ -156,6 +158,10 @@ export default function Home() {
   async function prepare(e: React.FormEvent) {
     e.preventDefault();
     if (sending.current || notificationState === 'sent' || !selected) return;
+    if (!receipt || receipt.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'application/pdf'].includes(receipt.type)) {
+      setNotificationFeedback('Pilih resit JPG, PNG atau PDF, maksimum 5 MB.');
+      return;
+    }
     sending.current = true;
     setNotificationState('sending');
     setNotificationFeedback('Sedang memaklumkan kepada admin…');
@@ -164,24 +170,22 @@ export default function Home() {
       `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${id}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${months} bulan, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
     );
     try {
+      const form = new FormData();
+      form.set('receipt', receipt);
+      form.set('payload', JSON.stringify({
+        requestId: id, planId: selected.id, months,
+        name: name.trim(), contact: contact.trim(), paymentClaimed: true,
+      }));
       const response = await fetch('/api/notify-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId: id,
-          planId: selected.id,
-          months,
-          name: name.trim(),
-          contact: contact.trim(),
-          paymentClaimed: true,
-        }),
-        signal: AbortSignal.timeout(20000),
+        body: form,
+        signal: AbortSignal.timeout(60000),
       });
       const result = (await response.json()) as {
         error?: string;
         orderId?: string;
       };
-      if (response.status === 400) {
+      if ([400, 413, 415].includes(response.status)) {
         setNotificationState('idle');
         setNotificationFeedback(result.error ?? 'Semak maklumat anda.');
         return;
@@ -192,7 +196,7 @@ export default function Home() {
         );
       setNotificationState('sent');
       setNotificationFeedback(
-        `Notifikasi dihantar kepada admin. Pesanan ${result.orderId}. Bayaran masih menunggu semakan.`,
+        `Resit dan notifikasi dihantar kepada admin Telegram. Pesanan ${result.orderId}. Bayaran masih menunggu semakan.`,
       );
     } catch (error) {
       setNotificationState('error');
@@ -408,7 +412,7 @@ export default function Home() {
           <div>
             <h2 id="admin-title">Perlukan bantuan admin?</h2>
             <p>
-              Hantar resit melalui WhatsApp. Sertai group Telegram untuk info
+              Upload resit semasa membuat pesanan atau hubungi WhatsApp. Sertai group Telegram untuk info
               langganan dan pengumuman.
             </p>
             <div className="contact-actions">
@@ -569,17 +573,30 @@ export default function Home() {
                 placeholder="Contoh: 0123456789 atau @username"
                 autoComplete="off"
               />
-              <p className="small-copy">
-                Nama dan maklumat hubungan ini dihantar kepada admin untuk
-                semakan pesanan. Hantar resit melalui WhatsApp
-                selepas ini.
+              <label htmlFor="payment-receipt">Upload resit bayaran</label>
+              <input
+                id="payment-receipt"
+                type="file"
+                accept="image/jpeg,image/png,application/pdf"
+                required
+                aria-describedby="receipt-help"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setReceipt(file);
+                  setNotificationFeedback(file && file.size > 5 * 1024 * 1024 ? 'Fail terlalu besar. Maksimum 5 MB.' : '');
+                }}
+              />
+              <p className="small-copy" id="receipt-help">
+                JPG, PNG atau PDF · Maksimum 5 MB. Resit, nama dan maklumat
+                hubungan dihantar secara peribadi kepada admin Telegram untuk
+                semakan bayaran.
               </p>
               <button className="btn primary full" type="submit">
                 {notificationState === 'sending'
                   ? 'Sedang menghantar…'
                   : notificationState === 'sent'
                     ? 'Admin telah dimaklumkan'
-                    : 'Saya dah bayar — maklumkan admin'}{' '}
+                    : 'Saya dah bayar — hantar resit'}{' '}
                 <ArrowRight size={18} />
               </button>
             </fieldset>
@@ -592,8 +609,9 @@ export default function Home() {
           {message && (
             <div className="prepared">
               <p>
-                Buka WhatsApp dengan mesej siap diisi. Lampirkan gambar resit
-                dan tekan hantar dalam aplikasi WhatsApp.
+                {notificationState === 'sent'
+                  ? 'Resit sudah dihantar. Jika perlukan bantuan, hubungi WhatsApp dengan nombor pesanan ini.'
+                  : 'Jika penghantaran gagal, buka WhatsApp dan lampirkan resit bersama nombor pesanan ini.'}
               </p>
               <textarea aria-label="Mesej pesanan" readOnly value={message} />
               <div>
@@ -603,7 +621,7 @@ export default function Home() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <MessageCircle size={16} /> Hantar resit di WhatsApp
+                  <MessageCircle size={16} /> {notificationState === 'sent' ? 'Hubungi WhatsApp' : 'Hantar resit di WhatsApp'}
                 </a>
                 <button className="btn secondary" onClick={() => copy(message)}>
                   <Copy size={16} /> Salin mesej

@@ -1107,3 +1107,7 @@ footer small {
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
+
+/* Receipt selection uses the same checkout controls and keyboard focus. */
+input[type='file'] { height: auto; padding: 12px; white-space: normal; }
+input[type='file']::file-selector-button { border: 0; border-radius: 6px; padding: 9px 12px; margin-right: 12px; background: #d5ee9c; color: #172016; cursor: pointer; font: inherit; }
