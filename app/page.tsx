@@ -407,7 +407,7 @@ export default function Home() {
           </div>
           <details className="support-guide">
             <summary>Household — pengguna TV</summary>
-            <div className="guide-content">
+            <div className="guide-content guide-with-image">
               <ol>
                 <li>Tekan butang <strong>This is My Account</strong>.</li>
                 <li>Tekan <strong>I'm Travelling</strong> atau <strong>Watch Temporarily</strong> pada TV.</li>
@@ -416,6 +416,12 @@ export default function Home() {
                 <li>Masukkan e-mel Netflix dalam ruang yang disediakan. Tekan <strong>Search</strong>, kemudian <strong>Open directly</strong>.</li>
                 <li>Masukkan kod yang dipaparkan pada peranti anda.</li>
               </ol>
+              <figure>
+                <a href="/netflix-household-tv.png" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar penuh paparan Netflix Household">
+                  <img src="/netflix-household-tv.png" alt="Paparan TV Netflix dengan mesej Your TV isn't part of the Netflix Household dan butang This is My Account." width={960} height={1280} loading="lazy" />
+                </a>
+                <figcaption>Contoh paparan Household. Tekan gambar untuk besarkan.</figcaption>
+              </figure>
             </div>
           </details>
           <details className="support-guide">
