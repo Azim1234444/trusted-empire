@@ -603,7 +603,7 @@ export default function Home() {
           <div className="payment">
             <div className="payment-qr-heading">
               <QrCode size={19} />
-              <strong>Imbas QR untuk bayar</strong>
+              <strong>QR Touch ’n Go</strong>
             </div>
             <p className="qr-recipient">ROSMISZAN BIN HUSAIN</p>
             <a
@@ -629,7 +629,33 @@ export default function Home() {
               href="/payment-qr.png"
               download="Trusted-Empire-QR.png"
             >
-              Simpan gambar QR <ArrowUpRight size={16} />
+              Simpan QR Touch ’n Go <ArrowUpRight size={16} />
+            </a>
+            <div className="payment-qr-heading cimb-qr-heading">
+              <QrCode size={19} />
+              <strong>QR CIMB</strong>
+            </div>
+            <p className="qr-recipient">ROSMISZAN BIN HUSAIN</p>
+            <a
+              className="payment-qr-frame payment-qr-cimb"
+              href="/payment-qr-cimb.png"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Buka gambar penuh QR CIMB Rosmiszan bin Husain"
+            >
+              <img
+                src="/payment-qr-cimb.png"
+                width={497}
+                height={1080}
+                alt="QR CIMB DuitNow untuk pembayaran kepada Rosmiszan bin Husain"
+              />
+            </a>
+            <a
+              className="btn secondary"
+              href="/payment-qr-cimb.png"
+              download="Trusted-Empire-QR-CIMB.png"
+            >
+              Simpan QR CIMB <ArrowUpRight size={16} />
             </a>
             <p className="qr-instructions">
               Guna telefon yang sama? Simpan QR dan pilih gambar itu dalam

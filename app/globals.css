@@ -1041,6 +1041,19 @@ footer small {
   color: #b8c3b9;
   margin: 12px 0 16px;
 }
+.cimb-qr-heading {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #344036;
+}
+.payment-qr-cimb {
+  aspect-ratio: 427 / 538;
+}
+.payment-qr-cimb img {
+  width: 116.3934%;
+  left: -8.1967%;
+  top: -41.0781%;
+}
 .payment .bank-label {
   padding-top: 18px;
   border-top: 1px solid #344036;
