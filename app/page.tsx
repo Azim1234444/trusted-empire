@@ -425,7 +425,7 @@ export default function Home() {
             </div>
           </details>
           <details className="support-guide">
-            <summary>Pengguna selain TV — telefon / Android box</summary>
+            <summary>Household — pengguna selain TV (telefon/android box)</summary>
             <div className="guide-content guide-with-image">
               <ol>
                 <li>Tekan butang <strong>This is My Account</strong>.</li>
