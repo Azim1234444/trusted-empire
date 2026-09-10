@@ -807,10 +807,36 @@ footer small {
     width: calc(100% - 36px);
   }
   .header {
-    height: 72px;
+    height: auto;
+    min-height: 72px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 16px;
   }
   .header nav {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    order: 3;
+    width: 100%;
+    gap: 4px;
+    padding-block: 4px 10px;
+    border-top: 1px solid #232629;
+  }
+  .header nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 4px;
+    text-align: center;
+    border-radius: 6px;
+    color: #d3d8da;
+  }
+  .header nav a:hover {
+    background: #262b2d;
+  }
+  .header nav a:focus-visible {
+    outline-offset: -2px;
   }
   .community {
     padding: 9px;
