@@ -410,6 +410,7 @@ export default function Home() {
             <div className="guide-content">
               <ol>
                 <li>Tekan butang <strong>This is My Account</strong>.</li>
+                <li>Tekan <strong>I'm Travelling</strong> atau <strong>Watch Temporarily</strong> pada TV.</li>
                 <li>Tekan <strong>Send email</strong>. Paparan akan meminta kod pengesahan.</li>
                 <li>Segera buka <a href="https://otp.ztycs.com/" target="_blank" rel="noopener noreferrer">otp.ztycs.com</a> menggunakan telefon, PC atau laptop.</li>
                 <li>Masukkan e-mel Netflix dalam ruang yang disediakan. Tekan <strong>Search</strong>, kemudian <strong>Open directly</strong>.</li>
