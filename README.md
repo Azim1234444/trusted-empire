@@ -14,5 +14,16 @@ The user supplied original payment and Telegram QR screenshots. These are stored
 
 ## Validation
 
+## Telegram notifications
+
+`POST /api/notify-order` records a customer payment claim in D1 and sends a notification to the configured admin through @AbiEmpireBot. This does not verify payment or deliver subscription credentials. The notification includes customer-provided name/contact, plan, server-calculated amount and order ID. Receipt submission remains via the existing direct messaging links.
+
+The admin @Mieyzan86 must send `/start` to the bot. Run `node scripts/check-telegram-admin.mjs` to verify that specific private Telegram account and save its chat ID to ignored `.env.local`. Configure the keys listed in `.env.example` as hosted runtime values, marking the bot token and admin chat ID as secrets. The private admin account @Mieyzan86 has been verified through /start and the hosted secrets have been configured.
+
+Run `node --test tests/notifications.test.mjs` for notification tests (Node 24). They use a local SQLite database and a simulated Telegram transport, so no real messages are sent. The tests cover server-side pricing, pending-review status, duplicate suppression, input/origin validation, rate limits and uncertain delivery. A timed-out send is deliberately not retried automatically because Telegram may already have accepted it. Use the same order ID when following up manually.
+
+Migration `drizzle/0000_mighty_beyonder.sql` creates the notification records and rate-limit index. These records contain customer contact details and are not exposed through any public read route. Rate limiting uses a daily salted hash of the Cloudflare-provided client IP (five fresh claims per ten minutes); this is basic abuse protection, not verified customer identity.
+
 TypeScript and production build checked. Local route returned HTTP 200. Browser UI testing was not requested. Optional WebMCP list_subscription_plans is feature-detected; no supported WebMCP validation context was available, so its runtime registration is unverified.
+
 

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import {
   ArrowUpRight,
@@ -67,6 +67,13 @@ const plans = [
 ];
 type Plan = (typeof plans)[number];
 export default function Home() {
+  const requestId = useRef('');
+  const sending = useRef(false);
+  const [contact, setContact] = useState('');
+  const [notificationState, setNotificationState] = useState<
+    'idle' | 'sending' | 'sent' | 'error'
+  >('idle');
+  const [notificationFeedback, setNotificationFeedback] = useState('');
   useEffect(() => {
     const context = (
       document as Document & {
@@ -128,6 +135,11 @@ export default function Home() {
   const total =
     selected?.id === 'netflix' && months === 2 ? 33 : (selected?.price ?? 0);
   function choose(plan: Plan) {
+    if (sending.current) return;
+    requestId.current = crypto.randomUUID();
+    setContact('');
+    setNotificationState('idle');
+    setNotificationFeedback('');
     setSelected(plan);
     setMonths(1);
     setName('');
@@ -142,11 +154,57 @@ export default function Home() {
       setNotice('Tidak dapat menyalin. Sila salin teks secara manual.');
     }
   }
-  function prepare(e: React.FormEvent) {
+  async function prepare(e: React.FormEvent) {
     e.preventDefault();
+    if (sending.current || notificationState === 'sent' || !selected) return;
+    sending.current = true;
+    setNotificationState('sending');
+    setNotificationFeedback('Sedang memaklumkan kepada admin…');
+    const id = requestId.current;
     setMessage(
-      `Salam Trusted Empire, saya ${name.trim()}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${months} bulan, RM${total}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
+      `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${id}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${months} bulan, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
     );
+    try {
+      const response = await fetch('/api/notify-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: id,
+          planId: selected.id,
+          months,
+          name: name.trim(),
+          contact: contact.trim(),
+          paymentClaimed: true,
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        orderId?: string;
+      };
+      if (response.status === 400) {
+        setNotificationState('idle');
+        setNotificationFeedback(result.error ?? 'Semak maklumat anda.');
+        return;
+      }
+      if (!response.ok)
+        throw new Error(
+          result.error || 'Tidak dapat menghantar notifikasi. Hubungi admin.',
+        );
+      setNotificationState('sent');
+      setNotificationFeedback(
+        `Notifikasi dihantar kepada admin. Pesanan ${result.orderId}. Bayaran masih menunggu semakan.`,
+      );
+    } catch (error) {
+      setNotificationState('error');
+      setNotificationFeedback(
+        error instanceof Error && error.name !== 'TimeoutError'
+          ? error.message
+          : 'Sambungan terganggu. Hubungi admin dengan nombor pesanan di bawah.',
+      );
+    } finally {
+      sending.current = false;
+    }
   }
   return (
     <>
@@ -400,7 +458,7 @@ export default function Home() {
       <Dialog
         open={!!selected}
         onOpenChange={(open) => {
-          if (!open) setSelected(null);
+          if (!open && !sending.current) setSelected(null);
         }}
       >
         <DialogContent className="checkout sm:max-w-[540px]">
@@ -423,6 +481,7 @@ export default function Home() {
               <button
                 className={months === 1 ? 'chosen' : ''}
                 aria-pressed={months === 1}
+                disabled={notificationState !== 'idle'}
                 onClick={() => {
                   setMonths(1);
                   setMessage('');
@@ -433,6 +492,7 @@ export default function Home() {
               <button
                 className={months === 2 ? 'chosen' : ''}
                 aria-pressed={months === 2}
+                disabled={notificationState !== 'idle'}
                 onClick={() => {
                   setMonths(2);
                   setMessage('');
@@ -498,24 +558,53 @@ export default function Home() {
             Reference payment: gunakan <strong>NAMA PENDEK</strong> anda sahaja.
           </p>
           <form onSubmit={prepare}>
-            <label htmlFor="customer-name">Nama pendek pada bayaran</label>
-            <input
-              id="customer-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setMessage('');
-              }}
-              required
-              maxLength={40}
-              pattern=".*\S.*"
-              placeholder="Contoh: Aina"
-              autoComplete="given-name"
-            />
-            <button className="btn primary full" type="submit">
-              Sediakan mesej pesanan <ArrowRight size={18} />
-            </button>
+            <fieldset disabled={notificationState !== 'idle'}>
+              <label htmlFor="customer-name">Nama pendek pada bayaran</label>
+              <input
+                id="customer-name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setMessage('');
+                }}
+                required
+                maxLength={40}
+                pattern=".*\S.*"
+                placeholder="Contoh: Aina"
+                autoComplete="given-name"
+              />
+              <label htmlFor="customer-contact">
+                Nombor WhatsApp atau @username Telegram
+              </label>
+              <input
+                id="customer-contact"
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                required
+                maxLength={33}
+                placeholder="Contoh: 0123456789 atau @username"
+                autoComplete="off"
+              />
+              <p className="small-copy">
+                Nama dan maklumat hubungan ini dihantar kepada admin untuk
+                semakan pesanan. Hantar resit melalui WhatsApp atau Telegram
+                selepas ini.
+              </p>
+              <button className="btn primary full" type="submit">
+                {notificationState === 'sending'
+                  ? 'Sedang menghantar…'
+                  : notificationState === 'sent'
+                    ? 'Admin telah dimaklumkan'
+                    : 'Saya dah bayar — maklumkan admin'}{' '}
+                <ArrowRight size={18} />
+              </button>
+            </fieldset>
           </form>
+          {notificationFeedback && (
+            <p className="notification-feedback" role="status">
+              {notificationFeedback}
+            </p>
+          )}
           {message && (
             <div className="prepared">
               <p>

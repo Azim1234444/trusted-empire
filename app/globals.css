@@ -1087,3 +1087,23 @@ footer small {
     font-size: 25px;
   }
 }
+.checkout fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.checkout button:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+}
+.notification-feedback {
+  padding: 13px;
+  border: 1px solid #475439;
+  border-radius: 8px;
+  color: #d7fa76;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
