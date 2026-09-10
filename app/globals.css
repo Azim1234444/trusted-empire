@@ -409,6 +409,7 @@ h2 {
 }
 .price {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 3px;
   font-size: 42px;
@@ -449,11 +450,6 @@ h2 {
   width: 100%;
   font-size: 14px;
 }
-.netflix .plan-button {
-  background: #d7fa76;
-  border-color: #d7fa76;
-  color: #14190a;
-}
 .renew-note {
   display: block;
   font-size: 11px;
@@ -461,45 +457,16 @@ h2 {
   color: #9ca497;
   margin: 11px -7px 0;
 }
-.iptv {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  border: 1px solid #2e3536;
-  border-radius: 12px;
-  margin-top: 23px;
-  padding: 24px;
-  background: linear-gradient(100deg, #1c2425, #14181b);
-}
-.iptv-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: #ffffff08;
-  color: #d7fa76;
-}
-.iptv h3 {
-  font-size: 19px;
-  font-weight: 500;
-  margin: 0 0 7px;
-}
-.iptv p {
-  font-size: 14px;
-  color: #a0aaae;
-  margin: 0;
-}
-.iptv p span {
-  margin: 0 8px;
-  color: #555;
-}
-.iptv a {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  font-size: 14px;
+.iptv-term { margin-block: 16px; }
+.iptv-term label { display: block; margin-bottom: 8px; }
+.iptv-term select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #3a4144;
+  border-radius: 8px;
+  background: #14181b;
+  color: #f2f3ed;
+  font: inherit;
 }
 .how {
   display: grid;
@@ -550,6 +517,56 @@ h2 {
   font-size: 14px;
   line-height: 1.6;
   max-width: 415px;
+}
+.support-guides {
+  padding-block: 48px;
+  scroll-margin-top: 24px;
+}
+.support-guide {
+  border: 1px solid #2c3032;
+  border-radius: 13px;
+  background: #15181b;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.support-guide summary {
+  cursor: pointer;
+  padding: 22px 24px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.support-guide summary::marker { color: #d7fa76; }
+.support-guide summary:hover { background: #1d2225; }
+.support-guide summary:focus-visible {
+  outline: 2px solid #d7fa76;
+  outline-offset: -4px;
+}
+.guide-content { padding: 0 24px 24px; }
+.guide-content ol {
+  list-style: decimal;
+  padding-left: 24px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #b5bdc1;
+}
+.guide-content li + li { margin-top: 14px; }
+.guide-content strong { color: #f2f3ed; font-weight: 500; }
+.guide-content ol a { color: #d7fa76; text-decoration: underline; overflow-wrap: anywhere; }
+.guide-with-image {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 250px);
+  gap: 32px;
+  align-items: start;
+}
+.guide-content figure { margin: 0; }
+.guide-content img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.guide-content figcaption { margin-top: 10px; color: #a1abae; font-size: 14px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .support-guide summary { padding: 18px; font-size: 16px; }
+  .guide-content { padding: 0 18px 20px; }
+  .guide-with-image { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .guide-content figure { max-width: 250px; justify-self: center; }
 }
 .help {
   display: flex;
@@ -897,30 +914,6 @@ footer small {
   }
   .prime .platform-mark {
     font-size: 23px;
-  }
-  .iptv {
-    flex-wrap: wrap;
-    padding: 20px;
-    gap: 14px;
-  }
-  .iptv > div:nth-child(2) {
-    flex: 1;
-  }
-  .iptv h3 {
-    font-size: 17px;
-  }
-  .iptv p {
-    font-size: 12px;
-    line-height: 1.8;
-  }
-  .iptv p span {
-    margin: 0 3px;
-  }
-  .iptv a {
-    width: 100%;
-    margin: 8px 0 0;
-    justify-content: space-between;
-    font-size: 13px;
   }
   .how {
     grid-template-columns: 1fr;

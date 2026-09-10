@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { notifyOrder, handleNotification } from '../lib/notifications.ts';
+import { iptvOptions } from '../lib/iptv-plans.mjs';
 const origin='https://example.test';
 test('only configured storefront receives CORS access, including errors',async()=>{
  const s=setup();s.env.STOREFRONT_ORIGIN='https://trusted-empire.vercel.app';
@@ -72,3 +73,51 @@ test('rejects unsupported plans, terms, invalid contacts and unclaimed payment',
 test('rejects cross-origin requests and missing configuration',async()=>{const s=setup();assert.equal((await notifyOrder(request({},'https://evil.test'),s.env,s.transport)).status,403);assert.equal((await notifyOrder(request(),{...s.env,TELEGRAM_ADMIN_CHAT_ID:''},s.transport)).status,503);assert.equal(s.sent.length,0);s.sql.close()});
 test('limits fresh requests without blocking idempotent repeat',async()=>{const s=setup(),id=crypto.randomUUID();for(let i=0;i<5;i++)assert.equal((await notifyOrder(request(i===0?{requestId:id}:{}),s.env,s.transport)).status,200);assert.equal((await notifyOrder(request(),s.env,s.transport)).status,429);assert.equal((await notifyOrder(request({requestId:id}),s.env,s.transport)).status,200);assert.equal(s.sent.length,5);s.sql.close()});
 test('uncertain delivery never reports success or resends automatically',async()=>{const s=setup(),id=crypto.randomUUID();let attempts=0;const failing=async()=>{attempts++;throw new Error('timeout')};assert.equal((await notifyOrder(request({requestId:id}),s.env,failing)).status,502);assert.equal((await notifyOrder(request({requestId:id}),s.env,failing)).status,409);assert.equal(attempts,1);s.sql.close()});
+
+test('all 22 IPTV options deliver the exact server price, duration and device count with receipts', async () => {
+ const prices = [10,25,50,95,190,45,90,14,38,70,115,175,230,28,80,130,230,110,170,270,20,50];
+ assert.equal(iptvOptions.length, prices.length);
+ assert.equal(new Set(iptvOptions.map(option => option.id)).size, prices.length);
+ for (const [index, option] of iptvOptions.entries()) {
+  const s = setup();
+  try {
+   const id = crypto.randomUUID();
+   const form = new FormData();
+   form.set('payload', await request({requestId:id,planId:option.id,months:option.months,amount:1}).text());
+   form.set('receipt', new Blob([png], {type:'image/png'}), 'receipt.png');
+   let calls = 0;
+   const transport = async (url, options) => {
+    calls++;
+    assert.match(url, /sendDocument$/);
+    const caption = options.body.get('caption');
+    assert.ok(caption.includes(`Pelan: ${option.name}\nTempoh: ${option.detail}\n`));
+    assert.ok(caption.includes(`Jumlah: RM${prices[index].toFixed(2)}\n`));
+    assert.match(caption, /MENUNGGU SEMAKAN BAYARAN/);
+    assert.ok(caption.length <= 1024);
+    return Response.json({ok:true,result:{message_id:45}});
+   };
+   const result = await notifyOrder(new Request(origin+'/api/notify-order', {
+    method:'POST',headers:{origin,'cf-connecting-ip':'127.0.0.1'},body:form,
+   }), s.env, transport);
+   assert.equal(result.status, 200, option.id);
+   assert.equal(calls, 1);
+   const row = s.sql.prepare('SELECT plan,months,amount_sen FROM order_notifications WHERE id=?').get(id);
+   assert.equal(row.plan, option.id);
+   assert.equal(row.amount_sen, prices[index] * 100);
+   assert.equal(row.months, option.months);
+   assert.equal((await notifyOrder(request({planId:option.id,months:option.months+1}),s.env,transport)).status,400);
+   assert.equal(calls,1);
+  } finally { s.sql.close(); }
+ }
+});
+
+test('changing IPTV device option on an existing order requires a new order ID', async () => {
+ const s = setup();
+ try {
+  const id = crypto.randomUUID();
+  const options = iptvOptions.filter(option => option.name === 'MSTV' && option.months === 1);
+  assert.equal((await notifyOrder(request({requestId:id,planId:options[0].id,months:1}),s.env,s.transport)).status,200);
+  assert.equal((await notifyOrder(request({requestId:id,planId:options[1].id,months:1}),s.env,s.transport)).status,409);
+  assert.equal(s.sent.length,1);
+ } finally { s.sql.close(); }
+});

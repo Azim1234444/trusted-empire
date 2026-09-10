@@ -11,7 +11,6 @@ import {
   QrCode,
   Send,
   ShieldCheck,
-  Tv,
   MessageCircle,
 } from 'lucide-react';
 import {
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 const group = 'https://t.me/TrustedEmpire86';
 const whatsapp = 'https://wa.me/601110995829';
+import { iptvPlans, iptvOptions } from '@/lib/iptv-plans.mjs';
 const plans = [
   {
     id: 'netflix',
@@ -64,7 +64,30 @@ const plans = [
     color: '#59e991',
   },
 ];
-type Plan = (typeof plans)[number];
+type Plan = (typeof plans)[number] | (typeof iptvOptions)[number];
+const catalogCards = [
+  ...plans.map((plan) => ({
+    ...plan,
+    period: 'bulan',
+    meta: plan.id === 'netflix' ? '28–30 hari setiap bulan' : '1 bulan langganan',
+    checkout: plan as Plan,
+  })),
+  ...iptvPlans.map((platform, index) => {
+    const option = iptvOptions.find((item) => item.name === platform.name)!;
+    return {
+      id: ['mstv', 'sybertv', 'wdhd', 'myiptv4k', 'goxplay'][index],
+      name: platform.name === 'MYIPTV4K (WAWA)' ? 'MYIPTV4K' : platform.name,
+      mark: platform.name === 'MYIPTV4K (WAWA)' ? 'MYIPTV4K' : platform.name,
+      detail: platform.name === 'MYIPTV4K (WAWA)' ? 'WAWA · Pilihan tempoh' : 'Pilihan tempoh langganan',
+      color: ['#ffab67', '#79d4f5', '#f2c760', '#7bdfc3', '#f59cbb'][index],
+      price: option.price,
+      period: platform.options[0].duration.match(/\(([^)]+)\)/)?.[1]
+        ?? platform.options[0].duration.replace(/^1 /, ''),
+      meta: `${platform.options.length} pilihan pelan`,
+      checkout: option as Plan,
+    };
+  }),
+];
 export default function Home() {
   const requestId = useRef('');
   const sending = useRef(false);
@@ -115,7 +138,14 @@ export default function Home() {
                   priceMYR: p.price,
                 })),
                 netflixTwoMonths: { priceMYR: 33, renewal: 'monthly' },
-                iptv: 'Ask admin for pricing',
+                iptv: iptvPlans.map((plan) => ({
+                  platform: plan.name,
+                  options: plan.options.map((option) => ({
+                    duration: option.duration,
+                    devices: 'devices' in option ? option.devices : null,
+                    priceMYR: option.price,
+                  })),
+                })),
                 paymentVerification: 'Manual admin review',
               };
             },
@@ -134,6 +164,7 @@ export default function Home() {
   const reduced = useReducedMotion();
   const total =
     selected?.id === 'netflix' && months === 2 ? 33 : (selected?.price ?? 0);
+  const term = selected && 'months' in selected ? selected.detail : `${months} bulan`;
   function choose(plan: Plan) {
     if (sending.current) return;
     requestId.current = crypto.randomUUID();
@@ -142,7 +173,7 @@ export default function Home() {
     setNotificationState('idle');
     setNotificationFeedback('');
     setSelected(plan);
-    setMonths(1);
+    setMonths('months' in plan ? plan.months : 1);
     setName('');
     setMessage('');
     setNotice('');
@@ -167,7 +198,7 @@ export default function Home() {
     setNotificationFeedback('Sedang memaklumkan kepada admin…');
     const id = requestId.current;
     setMessage(
-      `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${id}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${months} bulan, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
+      `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${id}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${term}, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
     );
     try {
       const form = new FormData();
@@ -286,10 +317,10 @@ export default function Home() {
         <section id="pelan" className="catalog wrap">
           <div className="section-heading">
             <h2>Pilih dunia hiburan anda.</h2>
-            <p>Langganan bulanan. Pilih yang kena dengan selera anda.</p>
+            <p>Pilih platform dan tempoh yang kena dengan selera anda.</p>
           </div>
           <div className="plan-grid">
-            {plans.map((plan, i) => (
+            {catalogCards.map((plan, i) => (
               <motion.article
                 key={plan.id}
                 className={`plan-card ${plan.id}`}
@@ -311,15 +342,13 @@ export default function Home() {
                   <div className="price">
                     <span>RM</span>
                     {plan.price}
-                    <small>/ bulan</small>
+                    <small>/ {plan.period}</small>
                   </div>
                   <div className="plan-meta">
                     <Check size={15} />
-                    {plan.id === 'netflix'
-                      ? '28–30 hari setiap bulan'
-                      : '1 bulan langganan'}
+                    {plan.meta}
                   </div>
-                  <button className="plan-button" onClick={() => choose(plan)}>
+                  <button className="plan-button" onClick={() => choose(plan.checkout)}>
                     Pilih pelan <ArrowUpRight size={18} />
                   </button>
                   {plan.id === 'netflix' && (
@@ -330,25 +359,6 @@ export default function Home() {
                 </div>
               </motion.article>
             ))}
-          </div>
-          <div className="iptv">
-            <div className="iptv-icon">
-              <Tv size={29} />
-            </div>
-            <div>
-              <h3>Lagi banyak pilihan dengan IPTV.</h3>
-              <p>
-                MSTV <span>·</span> Sybertv <span>·</span> WDHD <span>·</span>{' '}
-                Myiptv4k
-              </p>
-            </div>
-            <a
-              href={`${whatsapp}?text=${encodeURIComponent('Salam Trusted Empire, saya ingin tahu harga dan ketersediaan IPTV: MSTV, Sybertv, WDHD dan Myiptv4k.')}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Tanya harga & ketersediaan <ArrowUpRight size={18} />
-            </a>
           </div>
         </section>
         <section id="cara" className="how wrap">
@@ -390,7 +400,58 @@ export default function Home() {
             </li>
           </ol>
         </section>
-        <section id="bantuan" className="help wrap">
+        <section id="bantuan" className="support-guides wrap" aria-labelledby="support-title">
+          <div className="section-heading">
+            <h2 id="support-title">Bantuan Netflix</h2>
+            <p>Pilih panduan mengikut paparan pada peranti anda.</p>
+          </div>
+          <details className="support-guide">
+            <summary>Household — pengguna TV</summary>
+            <div className="guide-content">
+              <ol>
+                <li>Tekan <strong>I'm Travelling</strong> atau <strong>Watch Temporarily</strong> pada TV.</li>
+                <li>Tekan <strong>Send email</strong>. Paparan akan meminta kod pengesahan.</li>
+                <li>Segera buka <a href="https://otp.ztycs.com/" target="_blank" rel="noopener noreferrer">otp.ztycs.com</a> menggunakan telefon, PC atau laptop.</li>
+                <li>Masukkan e-mel Netflix dalam ruang yang disediakan. Tekan <strong>Search</strong>, kemudian <strong>Open directly</strong>.</li>
+                <li>Masukkan kod yang dipaparkan pada peranti anda.</li>
+              </ol>
+            </div>
+          </details>
+          <details className="support-guide">
+            <summary>Log masuk — kod 4 digit</summary>
+            <div className="guide-content guide-with-image">
+              <ol>
+                <li>Jika Netflix meminta kod 4 digit semasa log masuk, tekan <strong>Get help</strong> di bahagian bawah.</li>
+                <li>Pilih <strong>Use password instead</strong>.</li>
+                <li>Masukkan kata laluan Netflix anda.</li>
+              </ol>
+              <figure>
+                <a href="/netflix-login-4-digit.png" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar penuh panduan kod 4 digit">
+                  <img src="/netflix-login-4-digit.png" alt="Paparan Netflix meminta kod 4 digit, dengan pilihan Get help di bawah." width={499} height={1080} loading="lazy" />
+                </a>
+                <figcaption>Contoh paparan kod 4 digit. Tekan gambar untuk besarkan.</figcaption>
+              </figure>
+            </div>
+          </details>
+          <details className="support-guide">
+            <summary>Log masuk — kod 6 digit</summary>
+            <div className="guide-content guide-with-image">
+              <ol>
+                <li>Tekan <strong>Email a code</strong> pada Netflix.</li>
+                <li>Buka <a href="https://code.ztycs.com/" target="_blank" rel="noopener noreferrer">code.ztycs.com</a>.</li>
+                <li>Salin dan tampal e-mel Netflix dalam ruang e-mel, kemudian tekan <strong>QUERY CODE</strong>.</li>
+                <li>Kod akan dipaparkan di bawah. Masukkan kod tersebut pada peranti yang ingin digunakan.</li>
+              </ol>
+              <figure>
+                <a href="/netflix-login-6-digit.png" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar penuh panduan kod 6 digit">
+                  <img src="/netflix-login-6-digit.png" alt="Paparan pengesahan akaun Netflix dengan pilihan Email a code untuk panduan kod 6 digit." width={499} height={1080} loading="lazy" />
+                </a>
+                <figcaption>Pilih Email a code untuk meneruskan. Tekan gambar untuk besarkan.</figcaption>
+              </figure>
+            </div>
+          </details>
+        </section>
+        <section className="help wrap">
           <Send size={34} />
           <div>
             <h2>Jangan terlepas apa-apa info.</h2>
@@ -460,6 +521,24 @@ export default function Home() {
             <span>{selected?.detail}</span>
             <strong>RM{total}</strong>
           </div>
+          {selected && 'months' in selected && (
+            <div className="iptv-term">
+              <label htmlFor="iptv-term">Tempoh dan peranti</label>
+              <select
+                id="iptv-term"
+                value={selected.id}
+                disabled={notificationState !== 'idle'}
+                onChange={(event) => {
+                  const option = iptvOptions.find((item) => item.id === event.target.value);
+                  if (option) choose(option);
+                }}
+              >
+                {iptvOptions.filter((option) => option.name === selected.name).map((option) => (
+                  <option key={option.id} value={option.id}>{option.detail} · RM{option.price}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {selected?.id === 'netflix' && (
             <div
               className="duration"
@@ -490,7 +569,7 @@ export default function Home() {
               </button>
             </div>
           )}
-          {months === 2 && (
+          {selected?.id === 'netflix' && months === 2 && (
             <p className="small-copy">
               Pembaharuan dibuat setiap bulan (monthly renew).
             </p>

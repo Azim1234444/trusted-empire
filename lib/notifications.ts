@@ -1,3 +1,5 @@
+import { iptvOptions } from './iptv-plans.mjs';
+
 export interface NotificationEnv {
   DB: D1Database;
   TELEGRAM_BOT_TOKEN: string;
@@ -109,13 +111,16 @@ export async function notifyOrder(
   if (!body || typeof body !== 'object' || Array.isArray(body))
     return json({ error: 'Maklumat tidak sah.' }, 400);
   const { requestId, planId, months, name, contact } = body;
+  const iptvPlan = iptvOptions.find((option) => option.id === planId);
+  const validTerm = iptvPlan
+    ? months === iptvPlan.months
+    : typeof planId === 'string' && Object.hasOwn(catalog, planId) &&
+      (months === 1 || (planId === 'netflix' && months === 2));
   if (
     typeof requestId !== 'string' ||
     !/^\w{8}-\w{4}-4\w{3}-[89ab]\w{3}-\w{12}$/i.test(requestId) ||
     typeof planId !== 'string' ||
-    !Object.hasOwn(catalog, planId) ||
-    ![1, 2].includes(months) ||
-    (months === 2 && planId !== 'netflix') ||
+    !validTerm ||
     typeof name !== 'string' ||
     !name.trim() ||
     name.trim().length > 40 ||
@@ -133,7 +138,9 @@ export async function notifyOrder(
       },
       400,
     );
-  const amountSen = months === 2 ? 3300 : catalog[planId].price;
+  const amountSen = iptvPlan ? iptvPlan.price * 100 : months === 2 ? 3300 : catalog[planId].price;
+  const planName = iptvPlan?.name ?? catalog[planId].name;
+  const term = iptvPlan?.detail ?? `${months} bulan${months === 2 ? ' (monthly renew)' : ''}`;
   const payloadHash = await hash(
     JSON.stringify(receipt ? [planId, months, name.trim(), contact.trim(), receiptHash] : [planId, months, name.trim(), contact.trim()]),
   );
@@ -199,7 +206,7 @@ export async function notifyOrder(
             429,
           );
     }
-    const text = `PESANAN TRUSTED EMPIRE\n\nNo. pesanan: ${id}\nNama: ${name.trim()}\nHubungi: ${contact.trim()}\nPelan: ${catalog[planId].name}\nTempoh: ${months} bulan${months === 2 ? ' (monthly renew)' : ''}\nJumlah: RM${(amountSen / 100).toFixed(2)}\nRujukan bayaran: ${name.trim()}\n\nSTATUS: MENUNGGU SEMAKAN BAYARAN\nPelanggan memaklumkan sudah bayar. Identiti/kontak diisi pelanggan dan belum disahkan. Semak transaksi sebenar dan resit sebelum aktifkan langganan. Resit dihantar berasingan melalui WhatsApp/Telegram.`;
+    const text = `PESANAN TRUSTED EMPIRE\n\nNo. pesanan: ${id}\nNama: ${name.trim()}\nHubungi: ${contact.trim()}\nPelan: ${planName}\nTempoh: ${term}\nJumlah: RM${(amountSen / 100).toFixed(2)}\nRujukan bayaran: ${name.trim()}\n\nSTATUS: MENUNGGU SEMAKAN BAYARAN\nPelanggan memaklumkan sudah bayar. Identiti/kontak diisi pelanggan dan belum disahkan. Semak transaksi sebenar dan resit sebelum aktifkan langganan. Resit dihantar berasingan melalui WhatsApp/Telegram.`;
     let result: { ok?: boolean; result?: { message_id: number } };
     try {
       const attachment = new FormData();

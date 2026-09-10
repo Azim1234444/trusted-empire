@@ -31,6 +31,8 @@ TypeScript and production build checked. Local route returned HTTP 200. Browser 
 
 ## Receipt uploads
 
+IPTV uses the same payment and receipt checkout as the streaming plans. The 22 options in `lib/iptv-plans.mjs` are shared by the storefront and notification API. Each exact duration/device combination has its own plan ID; the server validates its term and calculates its price. Telegram captions and WhatsApp fallback messages include the exact duration and device count when supplied. For the existing database `months` column, day/week terms use zero; their exact duration is retained in the plan ID. Deploy the updated Sites API before the updated Vercel frontend so the API recognizes these new plans.
+
 Checkout sends JPG, PNG or PDF receipts (maximum 5 MiB) as multipart form data. The server bounds the request stream, validates the file signature and MIME type, and includes a SHA-256 receipt digest in duplicate detection. Telegram sendDocument delivers the original bytes and order caption in one private message to the configured admin. Receipt bytes are relayed directly to Telegram, not published as a website URL or retained in a website archive. D1 retains the order and Telegram message ID. Network-ambiguous delivery is never automatically retried. A WhatsApp fallback remains available. Uploading a receipt does not verify payment.
 
 The current checkout upload replaces the separate WhatsApp receipt step described above. JSON submissions remain supported for older open checkout sessions.
