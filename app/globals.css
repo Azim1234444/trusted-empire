@@ -552,6 +552,7 @@ h2 {
 }
 .guide-content li + li { margin-top: 14px; }
 .guide-content strong { color: #f2f3ed; font-weight: 500; }
+.guide-lead { margin: 0 0 18px; color: #b5bdc1; font-size: 16px; line-height: 1.7; }
 .guide-content ol a { color: #d7fa76; text-decoration: underline; overflow-wrap: anywhere; }
 .guide-with-image {
   display: grid;

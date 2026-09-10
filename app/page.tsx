@@ -425,6 +425,24 @@ export default function Home() {
             </div>
           </details>
           <details className="support-guide">
+            <summary>Pengguna selain TV — telefon / Android box</summary>
+            <div className="guide-content guide-with-image">
+              <div>
+                <p className="guide-lead">Untuk pengguna telefon dan Android box, rujuk panduan kod log masuk di bawah apabila Netflix meminta pengesahan e-mel.</p>
+                <ol>
+                  <li>Pilih panduan <strong>kod 4 digit</strong> atau <strong>kod 6 digit</strong> mengikut paparan Netflix.</li>
+                  <li>Ikut langkah pada panduan dan masukkan kod pada peranti yang ingin digunakan.</li>
+                </ol>
+              </div>
+              <figure>
+                <a href="/netflix-help-mobile.png" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar penuh panduan pengguna telefon dan Android box">
+                  <img src="/netflix-help-mobile.png" alt="Paparan bahagian Bantuan Netflix pada telefon dengan panduan Household dan kod log masuk." width={589} height={1280} loading="lazy" />
+                </a>
+                <figcaption>Rujukan panduan pada telefon. Tekan gambar untuk besarkan.</figcaption>
+              </figure>
+            </div>
+          </details>
+          <details className="support-guide">
             <summary>Log masuk — kod 4 digit</summary>
             <div className="guide-content guide-with-image">
               <ol>
