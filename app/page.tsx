@@ -426,7 +426,7 @@ export default function Home() {
           </details>
           <details className="support-guide">
             <summary>Pengguna selain TV — telefon / Android box</summary>
-            <div className="guide-content">
+            <div className="guide-content guide-with-image">
               <ol>
                 <li>Tekan butang <strong>This is My Account</strong>.</li>
                 <li>Tekan <strong>I'm Travelling</strong> atau <strong>Watch Temporarily</strong>.</li>
@@ -435,6 +435,12 @@ export default function Home() {
                 <li>Masukkan e-mel Netflix. Tekan <strong>Search</strong>, kemudian <strong>Open directly</strong>.</li>
                 <li>Masukkan kod yang dipaparkan pada peranti anda.</li>
               </ol>
+              <figure>
+                <a href="/netflix-household-mobile.png" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar penuh paparan Netflix pada telefon">
+                  <img src="/netflix-household-mobile.png" alt="Paparan Netflix pada telefon dengan mesej peranti bukan sebahagian daripada Household dan butang Watch Temporarily." width={580} height={1280} loading="lazy" />
+                </a>
+                <figcaption>Contoh paparan pada telefon atau Android box. Tekan gambar untuk besarkan.</figcaption>
+              </figure>
             </div>
           </details>
           <details className="support-guide">
