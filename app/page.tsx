@@ -21,7 +21,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 const group = 'https://t.me/TrustedEmpire86';
-const whatsapp = 'https://wa.me/60163495594';
+const whatsapp = 'https://wa.me/601110995829';
 const plans = [
   {
     id: 'netflix',
@@ -422,7 +422,7 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <MessageCircle size={18} /> WhatsApp 016-349 5594
+                <MessageCircle size={18} /> WhatsApp 011-1099 5829
               </a>
               <a
                 className="btn secondary"

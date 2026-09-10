@@ -4,7 +4,7 @@ Malay streaming subscription storefront built with React, Vinext, Tailwind and M
 
 ## Current checkout
 
-Customers choose a plan, scan or download the supplied payment QR (or copy the CIMB account), enter their payment reference name, and open WhatsApp 60163495594 with a prefilled order message. The customer-facing Telegram link opens the TrustedEmpire86 community group. Receipts are sent privately through WhatsApp. The original TrustedEmpire86 community link remains available for updates. Customers must attach their receipt and press Send in the messaging app. No payment is verified and no subscription is delivered automatically. IPTV pricing must be confirmed with the administrator.
+Customers choose a plan, scan or download the supplied payment QR (or copy the CIMB account), enter their payment reference name, and open WhatsApp 601110995829 with a prefilled order message. The customer-facing Telegram link opens the TrustedEmpire86 community group. Receipts are sent privately through WhatsApp. The original TrustedEmpire86 community link remains available for updates. Customers must attach their receipt and press Send in the messaging app. No payment is verified and no subscription is delivered automatically. IPTV pricing must be confirmed with the administrator.
 
 ## Requirements for automatic delivery
 
