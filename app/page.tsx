@@ -406,7 +406,7 @@ export default function Home() {
             <p>Pilih panduan mengikut paparan pada peranti anda.</p>
           </div>
           <details className="support-guide">
-            <summary>Household</summary>
+            <summary>Household — pengguna TV</summary>
             <div className="guide-content guide-with-image">
               <ol>
                 <li>Tekan butang <strong>This is My Account</strong>.</li>
