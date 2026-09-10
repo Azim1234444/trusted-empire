@@ -17,6 +17,7 @@ test('only configured storefront receives CORS access, including errors',async()
 });
 function setup(){
  const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../drizzle/0000_mighty_beyonder.sql',import.meta.url),'utf8'));
+ sql.exec(readFileSync(new URL('../drizzle/0001_rich_the_hand.sql',import.meta.url),'utf8'));
  const DB = {
    prepare(query) {
      return {
@@ -46,7 +47,7 @@ test('receipt is sent privately with order caption, preserves bytes and deduplic
  const s=setup(),id=crypto.randomUUID();let calls=0;
  const transport=async(url,options)=>{
   calls++;assert.match(url,/sendDocument$/);assert.equal(options.body.get('chat_id'),'123');
-  const doc=options.body.get('document');assert.equal(doc.name,`resit-${id}.png`);
+  const doc=options.body.get('document');assert.equal(doc.name,'resit-3H-0001.png');
   assert.deepEqual(Buffer.from(await doc.arrayBuffer()),png);
   assert.match(options.body.get('caption'),/RM33.00/);assert.match(options.body.get('caption'),/MENUNGGU SEMAKAN/);
   assert.ok(options.body.get('caption').length<=1024);
@@ -120,4 +121,40 @@ test('changing IPTV device option on an existing order requires a new order ID',
   assert.equal((await notifyOrder(request({requestId:id,planId:options[1].id,months:1}),s.env,s.transport)).status,409);
   assert.equal(s.sent.length,1);
  } finally { s.sql.close(); }
+});
+
+test('parallel new orders get unique sequential numbers and retries keep their number', async () => {
+ const s=setup();
+ try {
+  const ids=Array.from({length:5},()=>crypto.randomUUID());
+  const results=await Promise.all(ids.map(requestId=>notifyOrder(request({requestId}),s.env,s.transport)));
+  const bodies=await Promise.all(results.map(r=>r.json()));
+  assert.deepEqual(bodies.map(b=>b.orderId).sort(),['3H-0001','3H-0002','3H-0003','3H-0004','3H-0005']);
+  for(const [i,requestId] of ids.entries()) assert.equal((await (await notifyOrder(request({requestId}),s.env,s.transport)).json()).orderId,bodies[i].orderId);
+  assert.equal(s.sql.prepare('SELECT count(*) AS n FROM order_numbers').get().n,5);
+  assert.equal(s.sent.length,5);
+ } finally {s.sql.close();}
+});
+
+test('uncertain delivery retains short number on retry and numbers expand beyond four digits', async () => {
+ const s=setup();
+ try {
+  s.sql.exec("INSERT INTO sqlite_sequence(name,seq) VALUES ('order_numbers',9999)");
+  const id=crypto.randomUUID();
+  const fail=async()=>{throw Error('timeout')};
+  assert.equal((await (await notifyOrder(request({requestId:id}),s.env,fail)).json()).orderId,'3H-10000');
+  assert.equal((await (await notifyOrder(request({requestId:id}),s.env,fail)).json()).orderId,'3H-10000');
+ } finally {s.sql.close();}
+});
+
+test('legacy orders keep their original reference without consuming a number', async () => {
+ const s=setup();
+ try {
+  const id=crypto.randomUUID();
+  await notifyOrder(request({requestId:id}),s.env,s.transport);
+  s.sql.prepare('DELETE FROM order_numbers WHERE notification_id=?').run(id);
+  const repeat=await notifyOrder(request({requestId:id}),s.env,s.transport);
+  assert.equal((await repeat.json()).orderId,id);
+  assert.equal(s.sent.length,1);
+ } finally {s.sql.close();}
 });

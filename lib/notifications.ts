@@ -145,30 +145,34 @@ export async function notifyOrder(
     JSON.stringify(receipt ? [planId, months, name.trim(), contact.trim(), receiptHash] : [planId, months, name.trim(), contact.trim()]),
   );
   const id = requestId;
-  const existingResponse = (row: { payload_hash: string; state: string }) =>
-    row.payload_hash !== payloadHash
+  let orderId = id;
+  const existingResponse = async (row: { payload_hash: string; state: string }) => {
+    const number = await env.DB.prepare('SELECT number FROM order_numbers WHERE notification_id=?').bind(id).first<{ number: number }>();
+    orderId = number ? `3H-${String(number.number).padStart(4, '0')}` : id;
+    return row.payload_hash !== payloadHash
       ? json({ error: 'Pesanan ini telah berubah. Buka pelan semula.' }, 409)
       : row.state === 'sent'
         ? json({
-            orderId: id,
+            orderId,
             status: 'notified',
             paymentStatus: 'pending_review',
           })
         : json(
             {
-              orderId: id,
+              orderId,
               error:
                 'Pesanan telah direkodkan tetapi penghantaran belum dapat dipastikan. Hubungi admin dengan nombor pesanan ini.',
             },
             409,
           );
+  };
   try {
     const old = await env.DB.prepare(
       'SELECT payload_hash,state FROM order_notifications WHERE id=?',
     )
       .bind(id)
       .first<{ payload_hash: string; state: string }>();
-    if (old) return existingResponse(old);
+    if (old) return await existingResponse(old);
     const now = Date.now();
     const ipHash = await hash(
       `${env.TELEGRAM_BOT_TOKEN}:${request.headers.get('cf-connecting-ip') ?? 'unknown'}:${Math.floor(now / 86400000)}`,
@@ -197,7 +201,7 @@ export async function notifyOrder(
         .bind(id)
         .first<{ payload_hash: string; state: string }>();
       return raced
-        ? existingResponse(raced)
+        ? await existingResponse(raced)
         : json(
             {
               error:
@@ -206,13 +210,16 @@ export async function notifyOrder(
             429,
           );
     }
-    const text = `PESANAN TRUSTED EMPIRE\n\nNo. pesanan: ${id}\nNama: ${name.trim()}\nHubungi: ${contact.trim()}\nPelan: ${planName}\nTempoh: ${term}\nJumlah: RM${(amountSen / 100).toFixed(2)}\nRujukan bayaran: ${name.trim()}\n\nSTATUS: MENUNGGU SEMAKAN BAYARAN\nPelanggan memaklumkan sudah bayar. Identiti/kontak diisi pelanggan dan belum disahkan. Semak transaksi sebenar dan resit sebelum aktifkan langganan. Resit dihantar berasingan melalui WhatsApp/Telegram.`;
+    const allocated = await env.DB.prepare('SELECT number FROM order_numbers WHERE notification_id=?').bind(id).first<{ number: number }>();
+    if (!allocated) throw new Error('Order number missing');
+    orderId = `3H-${String(allocated.number).padStart(4, '0')}`;
+    const text = `PESANAN TRUSTED EMPIRE\n\nNo. pesanan: ${orderId}\nNama: ${name.trim()}\nHubungi: ${contact.trim()}\nPelan: ${planName}\nTempoh: ${term}\nJumlah: RM${(amountSen / 100).toFixed(2)}\nRujukan bayaran: ${name.trim()}\n\nSTATUS: MENUNGGU SEMAKAN BAYARAN\nPelanggan memaklumkan sudah bayar. Identiti/kontak diisi pelanggan dan belum disahkan. Semak transaksi sebenar dan resit sebelum aktifkan langganan. Resit dihantar berasingan melalui WhatsApp/Telegram.`;
     let result: { ok?: boolean; result?: { message_id: number } };
     try {
       const attachment = new FormData();
       if (receipt) {
         attachment.set('chat_id', env.TELEGRAM_ADMIN_CHAT_ID);
-        attachment.set('document', receipt, `resit-${id}.${receiptExtension}`);
+        attachment.set('document', receipt, `resit-${orderId}.${receiptExtension}`);
         attachment.set('caption', text.replace('Resit dihantar berasingan melalui WhatsApp/Telegram.', 'Resit dilampirkan oleh pelanggan; kesahihan bayaran belum disahkan.'));
       }
       const response = await transport(
@@ -238,7 +245,7 @@ export async function notifyOrder(
         .run();
       return json(
         {
-          orderId: id,
+          orderId,
           error:
             'Penghantaran notifikasi belum dapat dipastikan. Hubungi admin dan sertakan nombor pesanan ini.',
         },
@@ -251,14 +258,14 @@ export async function notifyOrder(
       .bind(result.result?.message_id ?? null, id)
       .run();
     return json({
-      orderId: id,
+      orderId,
       status: 'notified',
       paymentStatus: 'pending_review',
     });
   } catch {
     return json(
       {
-        orderId: id,
+        orderId,
         error:
           'Sistem tidak dapat melengkapkan permintaan. Hubungi admin dan sertakan nombor pesanan ini.',
       },

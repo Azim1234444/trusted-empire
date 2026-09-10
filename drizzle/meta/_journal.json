@@ -8,6 +8,13 @@
       "when": 1788979611858,
       "tag": "0000_mighty_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789051726827,
+      "tag": "0001_rich_the_hand",
+      "breakpoints": true
     }
   ]
 }

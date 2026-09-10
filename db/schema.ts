@@ -16,3 +16,9 @@ export const notifications = sqliteTable(
   },
   (table) => [index('notice_ip_created').on(table.ipHash, table.createdAt)],
 );
+
+// The migration trigger allocates a number atomically with each new order.
+export const orderNumbers = sqliteTable('order_numbers', {
+  number: integer('number').primaryKey({ autoIncrement: true }),
+  notificationId: text('notification_id').notNull().unique().references(() => notifications.id),
+});

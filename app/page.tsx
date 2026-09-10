@@ -197,9 +197,9 @@ export default function Home() {
     setNotificationState('sending');
     setNotificationFeedback('Sedang memaklumkan kepada admin…');
     const id = requestId.current;
-    setMessage(
-      `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${id}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${term}, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`,
-    );
+    const orderMessage = (reference: string) =>
+      `Salam Trusted Empire, saya ${name.trim()}. No. pesanan: ${reference}. Saya ingin mengesahkan bayaran untuk ${selected?.name}, ${term}, RM${total}. Hubungi: ${contact.trim()}. Rujukan bayaran: ${name.trim()}. Saya akan lampirkan resit untuk semakan.`;
+    setMessage(orderMessage(id));
     try {
       const form = new FormData();
       form.set('receipt', receipt);
@@ -216,6 +216,7 @@ export default function Home() {
         error?: string;
         orderId?: string;
       };
+      if (result.orderId) setMessage(orderMessage(result.orderId));
       if ([400, 413, 415].includes(response.status)) {
         setNotificationState('idle');
         setNotificationFeedback(result.error ?? 'Semak maklumat anda.');
