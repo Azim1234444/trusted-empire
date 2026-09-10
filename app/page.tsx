@@ -21,7 +21,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 const group = 'https://t.me/TrustedEmpire86';
-const telegramAdmin = 'https://t.me/AJIMJEHEHE';
 const whatsapp = 'https://wa.me/60163495594';
 const plans = [
   {
@@ -409,8 +408,8 @@ export default function Home() {
           <div>
             <h2 id="admin-title">Perlukan bantuan admin?</h2>
             <p>
-              Hantar resit atau tanya tentang langganan melalui WhatsApp atau
-              Telegram.
+              Hantar resit melalui WhatsApp. Sertai group Telegram untuk info
+              langganan dan pengumuman.
             </p>
             <div className="contact-actions">
               <a
@@ -423,29 +422,14 @@ export default function Home() {
               </a>
               <a
                 className="btn secondary"
-                href={telegramAdmin}
+                href={group}
                 target="_blank"
                 rel="noreferrer"
               >
-                <Send size={18} /> @AJIMJEHEHE
+                <Send size={18} /> Group Trusted Empire
               </a>
             </div>
           </div>
-          <a
-            className="telegram-qr"
-            href={telegramAdmin}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Hubungi admin Telegram AJIMJEHEHE"
-          >
-            <img
-              src="/telegram-admin-qr.png"
-              width={1184}
-              height={1410}
-              loading="lazy"
-              alt="QR Telegram admin @AJIMJEHEHE"
-            />
-          </a>
         </section>
       </main>
       <footer className="wrap">
@@ -587,7 +571,7 @@ export default function Home() {
               />
               <p className="small-copy">
                 Nama dan maklumat hubungan ini dihantar kepada admin untuk
-                semakan pesanan. Hantar resit melalui WhatsApp atau Telegram
+                semakan pesanan. Hantar resit melalui WhatsApp
                 selepas ini.
               </p>
               <button className="btn primary full" type="submit">
@@ -608,8 +592,8 @@ export default function Home() {
           {message && (
             <div className="prepared">
               <p>
-                Buka WhatsApp dengan mesej siap diisi, atau salin mesej untuk
-                Telegram. Lampirkan resit dan tekan hantar dalam aplikasi.
+                Buka WhatsApp dengan mesej siap diisi. Lampirkan gambar resit
+                dan tekan hantar dalam aplikasi WhatsApp.
               </p>
               <textarea aria-label="Mesej pesanan" readOnly value={message} />
               <div>
@@ -619,18 +603,18 @@ export default function Home() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <MessageCircle size={16} /> Teruskan ke WhatsApp
+                  <MessageCircle size={16} /> Hantar resit di WhatsApp
                 </a>
                 <button className="btn secondary" onClick={() => copy(message)}>
                   <Copy size={16} /> Salin mesej
                 </button>
                 <a
                   className="btn secondary"
-                  href={telegramAdmin}
+                  href={group}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Telegram admin <Send size={16} />
+                  Group Telegram <Send size={16} />
                 </a>
               </div>
               <small>
