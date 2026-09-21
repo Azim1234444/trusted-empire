@@ -9,6 +9,7 @@ export default defineConfig({
   css: { postcss: { plugins: [tailwindcss()] } },
   define: {
     'process.env.NEXT_PUBLIC_ORDER_API': JSON.stringify('https://trusted-empire-stream.pastel-note-1586.chatgpt.site/api/notify-order'),
+    'process.env.NEXT_PUBLIC_VISITOR_API': JSON.stringify('https://trusted-empire-stream.pastel-note-1586.chatgpt.site/api/visitors'),
   },
   build: { outDir: 'dist-vercel' },
 });

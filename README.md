@@ -46,3 +46,7 @@ The current checkout upload replaces the separate WhatsApp receipt step describe
 New accepted orders receive a server-issued reference such as `3H-0001`. Migration `0001_rich_the_hand.sql` creates the AUTOINCREMENT mapping and an AFTER INSERT trigger, so the mapping is allocated atomically with the order. UUIDs remain internal idempotency keys; retries reuse their number, and pre-migration orders keep their original references. Numbers expand past 9999 and never reset on deployments. Telegram captions, receipt filenames, customer success messages and WhatsApp fallback text use the returned reference. If a network failure prevents receiving it, the fallback retains the original request UUID for lookup. Deploy the Sites backend and migration before the Vercel frontend.
 
 The production storefront origin is now `https://abitrustedempire.com`. The old Vercel domain redirects there. Telegram end-to-end delivery was confirmed by the user before this numbering change; numbering tests use simulated transport and do not send live test messages.
+
+## Visitor count
+
+`POST /api/visitors` stores one random browser ID in D1 and returns the total unique IDs. The storefront keeps that ID in local storage and shows the count in its footer. Migration `0002_flowery_nitro.sql` creates the visitor table. This count starts when the feature is deployed; earlier visits cannot be reconstructed without historical analytics. It is an estimate of unique browsers, so clearing browser storage or using another device can count the same person again.

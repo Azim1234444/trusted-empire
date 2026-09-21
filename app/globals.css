@@ -610,6 +610,10 @@ footer .brand {
 footer p {
   font-size: 13px;
 }
+footer .visitor-total {
+  color: #d7fa76;
+  font-variant-numeric: tabular-nums;
+}
 footer small {
   font-size: 11px;
   margin-left: auto;

@@ -91,12 +91,39 @@ const catalogCards = [
 export default function Home() {
   const requestId = useRef('');
   const sending = useRef(false);
+  const [visitorTotal, setVisitorTotal] = useState<number | null | 'unavailable'>(null);
   const [contact, setContact] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [notificationState, setNotificationState] = useState<
     'idle' | 'sending' | 'sent' | 'error'
   >('idle');
   const [notificationFeedback, setNotificationFeedback] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    let visitorId: string;
+    try {
+      visitorId = localStorage.getItem('trusted-empire-visitor-id') || crypto.randomUUID();
+      localStorage.setItem('trusted-empire-visitor-id', visitorId);
+    } catch {
+      visitorId = crypto.randomUUID();
+    }
+    void fetch(process.env.NEXT_PUBLIC_VISITOR_API || '/api/visitors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorId }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Visitor count unavailable');
+        const data = await response.json() as { total?: unknown };
+        if (typeof data.total === 'number' && Number.isSafeInteger(data.total) && data.total >= 0)
+          setVisitorTotal(data.total);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setVisitorTotal('unavailable');
+      });
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     const context = (
       document as Document & {
@@ -528,6 +555,13 @@ export default function Home() {
           <Crown size={20} /> TRUSTED EMPIRE
         </a>
         <p>Hiburan anda, pilihan anda.</p>
+        <p className="visitor-total" aria-live="polite">
+          {visitorTotal === null
+            ? 'Mengira pelawat…'
+            : visitorTotal === 'unavailable'
+              ? 'Jumlah pelawat tidak tersedia'
+              : `${new Intl.NumberFormat('ms-MY').format(visitorTotal)} pelawat unik`}
+        </p>
         <small>Nama dan tanda dagangan milik pemilik masing-masing.</small>
       </footer>
       <Dialog

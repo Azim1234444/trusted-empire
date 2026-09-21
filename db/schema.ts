@@ -22,3 +22,8 @@ export const orderNumbers = sqliteTable('order_numbers', {
   number: integer('number').primaryKey({ autoIncrement: true }),
   notificationId: text('notification_id').notNull().unique().references(() => notifications.id),
 });
+
+export const visitors = sqliteTable('visitors', {
+  id: text('id').primaryKey(),
+  firstSeenAt: integer('first_seen_at').notNull(),
+});
